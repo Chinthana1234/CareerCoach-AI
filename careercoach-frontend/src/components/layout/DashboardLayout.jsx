@@ -1,22 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import Navbar from './Navbar';
 
 export default function DashboardLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100">
-      <Sidebar />
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        <Sidebar />
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSidebarOpen(false)}></div>
+          <div className="relative w-72 h-full">
+            <Sidebar mobile onClose={() => setSidebarOpen(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b border-slate-800 bg-slate-900/50 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-10">
-          <div className="text-sm text-slate-400 font-medium">
-            Welcome to CareerCoach AI
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="text-xs text-slate-400 font-medium">AI Systems Online</span>
-          </div>
-        </header>
-        <div className="flex-1 p-8 overflow-y-auto">
+        <Navbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           <Outlet />
         </div>
       </main>
