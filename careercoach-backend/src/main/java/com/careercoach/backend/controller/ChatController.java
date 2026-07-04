@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
 import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
@@ -44,5 +47,13 @@ public class ChatController {
             @PathVariable UUID sessionId,
             Principal principal) {
         return ResponseEntity.ok(chatService.getMessages(principal.getName(), sessionId));
+    }
+
+    @GetMapping(value = "/sessions/{sessionId}/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamChat(
+            @PathVariable UUID sessionId,
+            @RequestParam String prompt,
+            Principal principal) {
+        return chatService.streamChat(principal.getName(), sessionId, prompt);
     }
 }
