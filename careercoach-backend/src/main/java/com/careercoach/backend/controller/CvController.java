@@ -5,6 +5,7 @@ import com.careercoach.backend.repository.CvDocumentRepository;
 import com.careercoach.backend.entity.User;
 import com.careercoach.backend.repository.UserRepository;
 import com.careercoach.backend.service.CvService;
+import com.careercoach.backend.service.CvReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ public class CvController {
     private final CvService cvService;
     private final CvDocumentRepository cvDocumentRepository;
     private final UserRepository userRepository;
+    private final CvReviewService cvReviewService;
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadCv(@RequestParam("file") MultipartFile file, Principal principal) {
@@ -69,5 +71,35 @@ public class CvController {
         }
         
         return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/review/{cvId}")
+    public ResponseEntity<?> reviewCv(@PathVariable("cvId") Long cvId, Principal principal) {
+        try {
+            return ResponseEntity.ok(cvReviewService.reviewCv(principal.getName(), cvId));
+        } catch (IllegalArgumentException | SecurityException e) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(err);
+        } catch (Exception e) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Failed to analyze CV: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
+        }
+    }
+
+    @GetMapping("/review/latest")
+    public ResponseEntity<?> getLatestReview(Principal principal) {
+        try {
+            return ResponseEntity.ok(cvReviewService.getLatestReview(principal.getName()));
+        } catch (IllegalArgumentException e) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
+        } catch (Exception e) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Failed to retrieve latest CV review: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
+        }
     }
 }
