@@ -13,3 +13,10 @@ export const uploadCv = (file) => {
 
 // Get the latest uploaded CV document for the current user
 export const getLatestCv = () => API.get('/cv/latest');
+
+// Trigger AI CV Review
+export const triggerCvReview = (cvId) => API.post(`/cv/review/${cvId}`);
+
+// Get the latest CV review for the current user
+export const getLatestCvReview = () => API.get('/cv/review/latest');
+
