@@ -215,4 +215,66 @@ public class GeminiService {
                 "  \"feedback\": \"You did a fantastic job explaining your project work and handled team dynamic questions with great self-awareness. To improve, work on structuring your answers using the STAR method more tightly, specifically expanding on the measurable Results. Your vocabulary was highly professional, though you could sound a bit more relaxed and confident during structural transitions.\"\n" +
                 "}";
     }
+
+    public String generateNextTechnicalQuestion(String topic, String conversationHistory) {
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            log.warn("GEMINI_API_KEY is not set. Falling back to service-level mock question.");
+            return null; // Return null so the service knows to use its local mock question list
+        }
+
+        try {
+            String prompt = "You are an expert technical interviewer conducting a mock interview on the topic: " + topic + ".\n" +
+                    "Here is the dialogue history of the interview so far:\n" +
+                    conversationHistory + "\n" +
+                    "Based on this history, generate the next single technical question. " +
+                    "Ensure the question is professional, challenging, and strictly tests core concepts of " + topic + ".\n" +
+                    "Do not include any headers, instructions, or multiple options. Return ONLY the question text.";
+
+            return callGeminiApi(prompt, false);
+        } catch (Exception e) {
+            log.error("Error calling Gemini for next technical question, falling back", e);
+            return null;
+        }
+    }
+
+    public String evaluateTechnicalInterviewSession(String topic, String conversationHistory) {
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            log.warn("GEMINI_API_KEY is not set. Falling back to mock technical evaluation.");
+            return getMockTechnicalEvaluationJson(topic);
+        }
+
+        try {
+            String prompt = "You are an expert technical interviewer. You have just completed a technical mock interview on the topic: " + topic + ".\n" +
+                    "Evaluate the dialogue history between the AI interviewer and the candidate:\n" +
+                    conversationHistory + "\n" +
+                    "Analyze the candidate's performance based on the following metrics: Technical Accuracy (mapped to Professionalism score), Confidence, Grammar, Communication.\n" +
+                    "Provide score values (0 to 100) and construct constructive overall feedback.\n" +
+                    "Do not return any conversational text outside the JSON block.\n\n" +
+                    "Required JSON format:\n" +
+                    "{\n" +
+                    "  \"overallScore\": <integer, 0-100>,\n" +
+                    "  \"confidenceScore\": <integer, 0-100>,\n" +
+                    "  \"grammarScore\": <integer, 0-100>,\n" +
+                    "  \"communicationScore\": <integer, 0-100>,\n" +
+                    "  \"professionalismScore\": <integer, 0-100, representing Technical Accuracy and depth of topic knowledge>,\n" +
+                    "  \"feedback\": \"<detailed constructive summary text highlighting technical strengths, correcting technical mistakes, and specific areas of improvements in " + topic + ">\"\n" +
+                    "}";
+
+            return callGeminiApi(prompt, true);
+        } catch (Exception e) {
+            log.error("Error calling Gemini for technical interview evaluation, falling back", e);
+            return getMockTechnicalEvaluationJson(topic);
+        }
+    }
+
+    private String getMockTechnicalEvaluationJson(String topic) {
+        return "{\n" +
+                "  \"overallScore\": 84,\n" +
+                "  \"confidenceScore\": 80,\n" +
+                "  \"grammarScore\": 90,\n" +
+                "  \"communicationScore\": 85,\n" +
+                "  \"professionalismScore\": 82,\n" +
+                "  \"feedback\": \"You demonstrated solid knowledge of " + topic + " concepts in your answers. Your explanations of core syntax and principles were clean. To improve further, focus on referencing real-world design pattern applications or performance implications (such as memory management and execution complexity) in your explanations. Great technical understanding overall!\"\n" +
+                "}";
+    }
 }
