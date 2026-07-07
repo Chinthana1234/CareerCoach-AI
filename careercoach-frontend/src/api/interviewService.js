@@ -1,9 +1,14 @@
 import API from './axios';
 
 // Start a new mock interview session for a target job role
-export const startInterview = (jobTitle) => {
-  const url = jobTitle ? `/interview/sessions?jobTitle=${encodeURIComponent(jobTitle)}` : '/interview/sessions';
-  return API.post(url);
+export const startInterview = (jobTitle, interviewType = 'HR', topic = 'General') => {
+  const params = [];
+  if (jobTitle) params.push(`jobTitle=${encodeURIComponent(jobTitle)}`);
+  if (interviewType) params.push(`interviewType=${encodeURIComponent(interviewType)}`);
+  if (topic) params.push(`topic=${encodeURIComponent(topic)}`);
+  
+  const queryString = params.length > 0 ? `?${params.join('&')}` : '';
+  return API.post(`/interview/sessions${queryString}`);
 };
 
 // Submit an answer for the current question in a session
