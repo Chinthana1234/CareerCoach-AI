@@ -24,8 +24,10 @@ public class InterviewController {
     @PostMapping("/sessions")
     public ResponseEntity<InterviewSessionDto> startInterview(
             @RequestParam(required = false) String jobTitle,
+            @RequestParam(required = false) String interviewType,
+            @RequestParam(required = false) String topic,
             Principal principal) {
-        return ResponseEntity.ok(interviewService.createSession(principal.getName(), jobTitle));
+        return ResponseEntity.ok(interviewService.createSession(principal.getName(), jobTitle, interviewType, topic));
     }
 
     @PostMapping("/sessions/{sessionId}/answer")
