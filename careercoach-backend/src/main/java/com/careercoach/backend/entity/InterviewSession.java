@@ -31,6 +31,12 @@ public class InterviewSession {
     @Column(name = "status", nullable = false)
     private String status; // "IN_PROGRESS", "COMPLETED"
 
+    @Column(name = "interview_type")
+    private String interviewType; // "HR" or "TECHNICAL"
+
+    @Column(name = "topic")
+    private String topic; // "Java", "Spring Boot", "React", "SQL", "OOP", "General"
+
     @Column(name = "current_question_index", nullable = false)
     private Integer currentQuestionIndex; // tracking progress (e.g. 0 to 3)
 

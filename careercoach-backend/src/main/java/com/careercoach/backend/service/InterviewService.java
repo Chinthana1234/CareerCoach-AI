@@ -223,6 +223,8 @@ public class InterviewService {
                 .feedback(session.getFeedback())
                 .createdAt(session.getCreatedAt())
                 .updatedAt(session.getUpdatedAt())
+                .interviewType(session.getInterviewType())
+                .topic(session.getTopic())
                 .build();
     }
 }

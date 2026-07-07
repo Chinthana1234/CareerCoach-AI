@@ -16,6 +16,8 @@ public class InterviewSessionDto {
     private UUID id;
     private String jobTitle;
     private String status;
+    private String interviewType;
+    private String topic;
     private Integer currentQuestionIndex;
     private Integer overallScore;
     private Integer confidenceScore;
