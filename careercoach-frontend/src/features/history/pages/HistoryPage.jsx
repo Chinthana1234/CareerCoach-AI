@@ -97,44 +97,56 @@ export default function HistoryPage() {
               )}
 
               {/* Render Mock Interviews */}
-              {interviews.map((session) => (
-                <tr 
-                  key={session.id}
-                  className="hover:bg-slate-800/20 transition-colors"
-                >
-                  <td className="px-6 py-4 font-medium text-slate-400">{formatDate(session.createdAt)}</td>
-                  <td className="px-6 py-4">
-                    <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                      Mock Interview
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-semibold text-white">🗣️ HR Mock Interview ({session.jobTitle})</td>
-                  <td className="px-6 py-4">
-                    {session.status === 'COMPLETED' ? (
-                      <span className="text-emerald-400 font-extrabold">{session.overallScore} / 100</span>
-                    ) : (
-                      <span className="text-amber-400 font-bold italic">In Progress</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {session.status === 'COMPLETED' ? (
-                      <button 
-                        onClick={() => setSelectedSession(session)}
-                        className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline"
-                      >
-                        View Assessment
-                      </button>
-                    ) : (
-                      <a 
-                        href="/interview" 
-                        className="text-xs font-bold text-amber-400 hover:text-amber-300 underline"
-                      >
-                        Resume Session
-                      </a>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {interviews.map((session) => {
+                const isTech = session.interviewType === 'TECHNICAL';
+                return (
+                  <tr 
+                    key={session.id}
+                    className="hover:bg-slate-800/20 transition-colors"
+                  >
+                    <td className="px-6 py-4 font-medium text-slate-400">{formatDate(session.createdAt)}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${
+                        isTech
+                          ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                          : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                      }`}>
+                        {isTech ? 'Technical' : 'Mock Interview'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-white">
+                      {isTech 
+                        ? `💻 Technical Interview (${session.topic})` 
+                        : `🗣️ HR Mock Interview (${session.jobTitle})`
+                      }
+                    </td>
+                    <td className="px-6 py-4">
+                      {session.status === 'COMPLETED' ? (
+                        <span className="text-emerald-400 font-extrabold">{session.overallScore} / 100</span>
+                      ) : (
+                        <span className="text-amber-400 font-bold italic">In Progress</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      {session.status === 'COMPLETED' ? (
+                        <button 
+                          onClick={() => setSelectedSession(session)}
+                          className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline"
+                        >
+                          View Assessment
+                        </button>
+                      ) : (
+                        <a 
+                          href="/interview" 
+                          className="text-xs font-bold text-amber-400 hover:text-amber-300 underline"
+                        >
+                          Resume Session
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
 
               {/* Empty State */}
               {!latestCv && interviews.length === 0 && (
@@ -156,8 +168,15 @@ export default function HistoryPage() {
             {/* Modal Header */}
             <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
               <div>
-                <h3 className="text-lg font-bold text-white">HR Interview Assessment</h3>
-                <p className="text-xs text-slate-400">Target Role: <span className="text-indigo-400 font-semibold">{selectedSession.jobTitle}</span></p>
+                <h3 className="text-lg font-bold text-white">
+                  {selectedSession.interviewType === 'TECHNICAL' ? 'Technical Interview Assessment' : 'HR Interview Assessment'}
+                </h3>
+                <p className="text-xs text-slate-400">
+                  {selectedSession.interviewType === 'TECHNICAL' ? 'Topic: ' : 'Target Role: '}
+                  <span className="text-indigo-400 font-semibold">
+                    {selectedSession.interviewType === 'TECHNICAL' ? selectedSession.topic : selectedSession.jobTitle}
+                  </span>
+                </p>
               </div>
               <button 
                 onClick={() => setSelectedSession(null)}
@@ -190,8 +209,10 @@ export default function HistoryPage() {
                     <span className="text-amber-400 font-bold text-sm">{selectedSession.communicationScore}%</span>
                   </div>
                   <div className="flex flex-col bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
-                    <span className="text-slate-400 font-semibold mb-0.5">Professionalism</span>
-                    <span className="text-indigo-450 font-bold text-sm">{selectedSession.professionalismScore}%</span>
+                    <span className="text-slate-400 font-semibold mb-0.5">
+                      {selectedSession.interviewType === 'TECHNICAL' ? 'Technical Accuracy' : 'Professionalism'}
+                    </span>
+                    <span className="text-indigo-400 font-bold text-sm">{selectedSession.professionalismScore}%</span>
                   </div>
                 </div>
               </div>

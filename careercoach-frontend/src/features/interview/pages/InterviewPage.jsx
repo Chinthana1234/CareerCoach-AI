@@ -10,12 +10,21 @@ const JOB_PRESETS = [
   { id: 'ba', title: 'Business Analyst', icon: '📈' },
 ];
 
+const TECHNICAL_PRESETS = [
+  { id: 'java', title: 'Java', icon: '☕' },
+  { id: 'springboot', title: 'Spring Boot', icon: '🍃' },
+  { id: 'react', title: 'React', icon: '⚛️' },
+  { id: 'sql', title: 'SQL', icon: '🗄️' },
+  { id: 'oop', title: 'OOP', icon: '🧱' },
+];
+
 export default function InterviewPage() {
   const [session, setSession] = useState(null);
   const [messages, setMessages] = useState([]);
   const [selectedRole, setSelectedRole] = useState('');
   const [customRole, setCustomRole] = useState('');
   const [answerText, setAnswerText] = useState('');
+  const [activeMode, setActiveMode] = useState('HR'); // 'HR' or 'TECHNICAL'
   
   // Loading & state management
   const [starting, setStarting] = useState(false);
@@ -29,28 +38,52 @@ export default function InterviewPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleStartSession = async (role) => {
-    const roleTitle = role === 'custom' ? customRole.trim() : role;
-    if (!roleTitle) {
-      setError('Please specify a job title to start the interview.');
-      return;
-    }
+  const handleStartSession = async (roleOrTopic) => {
+    if (activeMode === 'TECHNICAL') {
+      if (!roleOrTopic) {
+        setError('Please select a topic to start the technical interview.');
+        return;
+      }
 
-    try {
-      setStarting(true);
-      setError(null);
-      const res = await startInterview(roleTitle);
-      const newSession = res.data;
-      setSession(newSession);
+      try {
+        setStarting(true);
+        setError(null);
+        const res = await startInterview('Technical Candidate', 'TECHNICAL', roleOrTopic);
+        const newSession = res.data;
+        setSession(newSession);
 
-      // Load initial message
-      const msgRes = await getInterviewMessages(newSession.id);
-      setMessages(msgRes.data);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to start the interview session. Please try again.');
-    } finally {
-      setStarting(false);
+        // Load initial message
+        const msgRes = await getInterviewMessages(newSession.id);
+        setMessages(msgRes.data);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to start the technical interview session. Please try again.');
+      } finally {
+        setStarting(false);
+      }
+    } else {
+      const roleTitle = roleOrTopic === 'custom' ? customRole.trim() : roleOrTopic;
+      if (!roleTitle) {
+        setError('Please specify a job title to start the interview.');
+        return;
+      }
+
+      try {
+        setStarting(true);
+        setError(null);
+        const res = await startInterview(roleTitle, 'HR', 'General');
+        const newSession = res.data;
+        setSession(newSession);
+
+        // Load initial message
+        const msgRes = await getInterviewMessages(newSession.id);
+        setMessages(msgRes.data);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to start the interview session. Please try again.');
+      } finally {
+        setStarting(false);
+      }
     }
   };
 
@@ -95,6 +128,7 @@ export default function InterviewPage() {
     setCustomRole('');
     setAnswerText('');
     setError(null);
+    setActiveMode('HR');
   };
 
   // If a session exists and is completed, render the results view
@@ -116,10 +150,19 @@ export default function InterviewPage() {
         {/* Active Header */}
         <div className="p-4 bg-slate-900 border border-slate-800 rounded-t-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg text-xl">🗣️</span>
+            <span className="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg text-xl">
+              {session.interviewType === 'TECHNICAL' ? '💻' : '🗣️'}
+            </span>
             <div>
-              <h2 className="text-lg font-bold text-white">HR Interview Practice</h2>
-              <p className="text-xs text-slate-400">Target Role: <span className="text-indigo-400 font-semibold">{session.jobTitle}</span></p>
+              <h2 className="text-lg font-bold text-white">
+                {session.interviewType === 'TECHNICAL' ? 'Technical Interview Practice' : 'HR Interview Practice'}
+              </h2>
+              <p className="text-xs text-slate-400">
+                {session.interviewType === 'TECHNICAL' ? 'Topic: ' : 'Target Role: '}
+                <span className="text-indigo-400 font-semibold">
+                  {session.interviewType === 'TECHNICAL' ? session.topic : session.jobTitle}
+                </span>
+              </p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -216,7 +259,7 @@ export default function InterviewPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-4xl font-extrabold font-display tracking-tight text-white">Mock Interview Practice</h1>
-        <p className="text-slate-400">Improve your communication, grammar, confidence, and professionalism with AI-powered mock interviews.</p>
+        <p className="text-slate-400">Improve your communication, grammar, confidence, and technical skills with AI-powered mock interviews.</p>
       </div>
 
       {error && (
@@ -226,58 +269,122 @@ export default function InterviewPage() {
       )}
 
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
-        <div>
-          <h2 className="text-xl font-bold text-white mb-2">🗣️ HR Interview Setup</h2>
-          <p className="text-sm text-slate-400">Select your target career track to calibrate standard HR questions and behavioral prompts.</p>
-        </div>
-
-        {/* Grid of presets */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          {JOB_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              onClick={() => {
-                setSelectedRole(preset.title);
-                setError(null);
-              }}
-              className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all ${
-                selectedRole === preset.title
-                  ? 'bg-indigo-600/10 border-indigo-500 text-white shadow-lg'
-                  : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <span className="text-2xl">{preset.icon}</span>
-              <span className="text-xs font-semibold text-center leading-snug">{preset.title}</span>
-            </button>
-          ))}
+        {/* Mode Selector Tabs */}
+        <div className="flex border-b border-slate-800 gap-4 mb-2">
           <button
             onClick={() => {
-              setSelectedRole('custom');
+              setActiveMode('HR');
+              setSelectedRole('');
               setError(null);
             }}
-            className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all ${
-              selectedRole === 'custom'
-                ? 'bg-indigo-600/10 border-indigo-500 text-white'
-                : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200'
+            className={`pb-3 text-sm font-bold border-b-2 transition-all ${
+              activeMode === 'HR'
+                ? 'border-indigo-500 text-white'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <span className="text-2xl">⚙️</span>
-            <span className="text-xs font-semibold text-center leading-snug">Custom Role</span>
+            🗣️ HR Mock Interview
+          </button>
+          <button
+            onClick={() => {
+              setActiveMode('TECHNICAL');
+              setSelectedRole('');
+              setError(null);
+            }}
+            className={`pb-3 text-sm font-bold border-b-2 transition-all ${
+              activeMode === 'TECHNICAL'
+                ? 'border-indigo-500 text-white'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            💻 Technical Interview
           </button>
         </div>
 
-        {/* Custom Input Field */}
-        {selectedRole === 'custom' && (
-          <div className="space-y-2 animate-fadeIn">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Target Role Title</label>
-            <input
-              type="text"
-              value={customRole}
-              onChange={(e) => setCustomRole(e.target.value)}
-              placeholder="e.g. Senior Full-Stack Developer, DevOps Engineer..."
-              className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
-            />
-          </div>
+        {activeMode === 'HR' ? (
+          <>
+            <div>
+              <h2 className="text-xl font-bold text-white mb-2">🗣️ HR Interview Setup</h2>
+              <p className="text-sm text-slate-400">Select your target career track to calibrate standard HR questions and behavioral prompts.</p>
+            </div>
+
+            {/* Grid of presets */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+              {JOB_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => {
+                    setSelectedRole(preset.title);
+                    setError(null);
+                  }}
+                  className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all ${
+                    selectedRole === preset.title
+                      ? 'bg-indigo-600/10 border-indigo-500 text-white shadow-lg'
+                      : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <span className="text-2xl">{preset.icon}</span>
+                  <span className="text-xs font-semibold text-center leading-snug">{preset.title}</span>
+                </button>
+              ))}
+              <button
+                onClick={() => {
+                  setSelectedRole('custom');
+                  setError(null);
+                }}
+                className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all ${
+                  selectedRole === 'custom'
+                    ? 'bg-indigo-600/10 border-indigo-500 text-white'
+                    : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <span className="text-2xl">⚙️</span>
+                <span className="text-xs font-semibold text-center leading-snug">Custom Role</span>
+              </button>
+            </div>
+
+            {/* Custom Input Field */}
+            {selectedRole === 'custom' && (
+              <div className="space-y-2 animate-fadeIn">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Target Role Title</label>
+                <input
+                  type="text"
+                  value={customRole}
+                  onChange={(e) => setCustomRole(e.target.value)}
+                  placeholder="e.g. Senior Full-Stack Developer, DevOps Engineer..."
+                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div>
+              <h2 className="text-xl font-bold text-white mb-2">💻 Technical Interview Setup</h2>
+              <p className="text-sm text-slate-400">Select a specific technical domain or topic below to generate standard coding and systems questions.</p>
+            </div>
+
+            {/* Grid of presets */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+              {TECHNICAL_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => {
+                    setSelectedRole(preset.title);
+                    setError(null);
+                  }}
+                  className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all ${
+                    selectedRole === preset.title
+                      ? 'bg-indigo-600/10 border-indigo-500 text-white shadow-lg'
+                      : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <span className="text-2xl">{preset.icon}</span>
+                  <span className="text-xs font-semibold text-center leading-snug">{preset.title}</span>
+                </button>
+              ))}
+            </div>
+          </>
         )}
 
         <button
@@ -291,10 +398,9 @@ export default function InterviewPage() {
               Initializing AI Session...
             </>
           ) : (
-            'Start Mock Interview Session'
+            activeMode === 'TECHNICAL' ? 'Start Technical Interview Session' : 'Start Mock Interview Session'
           )}
         </button>
-      </div>
     </div>
   );
 }

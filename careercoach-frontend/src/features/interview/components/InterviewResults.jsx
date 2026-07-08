@@ -55,13 +55,20 @@ export default function InterviewResults({ session, messages, onReset }) {
   const overallCircumference = overallNormRadius * 2 * Math.PI;
   const overallOffset = overallCircumference - (session.overallScore / 100) * overallCircumference;
 
+  const isTechnical = session.interviewType === 'TECHNICAL';
+
   return (
     <div className="space-y-6">
       {/* Header and Action */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-4xl font-extrabold font-display tracking-tight text-white">Performance Evaluation</h1>
-          <p className="text-slate-400">Mock interview assessment for <span className="text-indigo-400 font-semibold">{session.jobTitle}</span></p>
+          <p className="text-slate-400">
+            {isTechnical 
+              ? <>Technical assessment for topic: <span className="text-indigo-400 font-semibold">{session.topic}</span></>
+              : <>Mock interview assessment for <span className="text-indigo-400 font-semibold">{session.jobTitle}</span></>
+            }
+          </p>
         </div>
         <button
           onClick={onReset}
@@ -106,7 +113,12 @@ export default function InterviewResults({ session, messages, onReset }) {
               {session.overallScore}
             </span>
           </div>
-          <p className="text-xs text-slate-400 leading-snug">Overall assessment calculation based on Confidence, Grammar, Communication, and Professionalism criteria.</p>
+          <p className="text-xs text-slate-400 leading-snug">
+            {isTechnical
+              ? "Overall assessment calculation based on Confidence, Grammar, Communication, and Technical Accuracy criteria."
+              : "Overall assessment calculation based on Confidence, Grammar, Communication, and Professionalism criteria."
+            }
+          </p>
         </div>
 
         {/* Right Section: 4 Metric Cards */}
@@ -128,7 +140,7 @@ export default function InterviewResults({ session, messages, onReset }) {
           />
           <MetricScoreRing 
             score={session.professionalismScore} 
-            label="Professionalism" 
+            label={isTechnical ? "Technical Accuracy" : "Professionalism"} 
             colorClass="text-indigo-500" 
           />
         </div>
@@ -137,7 +149,7 @@ export default function InterviewResults({ session, messages, onReset }) {
       {/* Detailed Feedback */}
       <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
         <h3 className="text-lg font-bold text-white flex items-center gap-2">
-          <span>📝</span> HR Expert Feedback & Summary
+          <span>📝</span> {isTechnical ? "Technical Expert Feedback & Summary" : "HR Expert Feedback & Summary"}
         </h3>
         <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{session.feedback}</p>
       </div>
