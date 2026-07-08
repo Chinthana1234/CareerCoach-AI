@@ -277,4 +277,37 @@ public class GeminiService {
                 "  \"feedback\": \"You demonstrated solid knowledge of " + topic + " concepts in your answers. Your explanations of core syntax and principles were clean. To improve further, focus on referencing real-world design pattern applications or performance implications (such as memory management and execution complexity) in your explanations. Great technical understanding overall!\"\n" +
                 "}";
     }
+
+    public String generateLinkedinReview(String headline, String about, String experience) {
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            log.warn("GEMINI_API_KEY is not set. Using simulated mock linkedin review.");
+            return getMockLinkedinReviewJson();
+        }
+        try {
+            String prompt = "You are an expert Career Coach and LinkedIn Profile Optimizer.\n" +
+                    "Review the following LinkedIn profile sections provided by the user:\n\n" +
+                    "Headline: " + headline + "\n\n" +
+                    "About: " + about + "\n\n" +
+                    "Experience: " + experience + "\n\n" +
+                    "Provide a detailed assessment by completing the JSON response structure.\n" +
+                    "Do not return any conversational text outside the JSON block.\n\n" +
+                    "Required JSON format:\n" +
+                    "{\n" +
+                    "  \"suggestions\": \"<bulleted list of actionable recommendations to improve the profile's visibility, keywords, and impact>\",\n" +
+                    "  \"improvedProfile\": \"<a complete, rewritten version of the profile sections (Headline, About, Experience) that is professional, keyword-rich, and engaging>\"\n" +
+                    "}";
+
+            return callGeminiApi(prompt, true);
+        } catch (Exception e) {
+            log.error("Error calling Gemini for Linkedin review, falling back", e);
+            return getMockLinkedinReviewJson();
+        }
+    }
+
+    private String getMockLinkedinReviewJson() {
+        return "{\n" +
+                "  \"suggestions\": \"- Add more industry-specific keywords to your Headline.\\n- Quantify your achievements in the Experience section (e.g., 'Increased sales by 20%').\\n- Make your About section more personal and engaging by starting with a hook.\",\n" +
+                "  \"improvedProfile\": \"**Headline:** Senior Software Engineer | Java, Spring Boot, React | Driving Scalable Cloud Solutions\\n\\n**About:** Passionate software engineer with 5+ years of experience building robust applications...\\n\\n**Experience:** \\n- Led a team of 4 engineers to deliver...\"\n" +
+                "}";
+    }
 }
