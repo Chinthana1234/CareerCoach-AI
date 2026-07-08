@@ -1,4 +1,4 @@
-import api from './axiosConfig';
+import api from './axios';
 
 export const submitLinkedinReview = async (headline, about, experience) => {
   const response = await api.post('/api/linkedin/review', {

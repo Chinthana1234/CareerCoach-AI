@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { getInterviewHistory } from '../../../api/interviewService';
 import { getLatestCvReview } from '../../../api/cvService';
+import { getLinkedinReviewHistory } from '../../../api/linkedinReviewService';
 
 export default function HistoryPage() {
   const [interviews, setInterviews] = useState([]);
   const [latestCv, setLatestCv] = useState(null);
+  const [linkedinReviews, setLinkedinReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -26,6 +28,14 @@ export default function HistoryPage() {
         } catch (cvErr) {
           // If no CV reviews exist, fail silently as it's optional
           console.log("No CV reviews found.");
+        }
+
+        // Load Linkedin Reviews
+        try {
+          const linkedinRes = await getLinkedinReviewHistory();
+          setLinkedinReviews(linkedinRes);
+        } catch (linkErr) {
+          console.log("No Linkedin reviews found.");
         }
       } catch (err) {
         console.error(err);
@@ -74,6 +84,28 @@ export default function HistoryPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50 text-sm text-slate-300">
+              {/* Render Linkedin Reviews */}
+              {linkedinReviews.map((review) => (
+                <tr key={`li-${review.id}`} className="hover:bg-slate-800/20 transition-colors">
+                  <td className="px-6 py-4 font-medium text-slate-400">{formatDate(review.createdAt)}</td>
+                  <td className="px-6 py-4">
+                    <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                      LinkedIn
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 font-semibold text-white">LinkedIn Profile Review</td>
+                  <td className="px-6 py-4 text-emerald-400 font-extrabold">Complete</td>
+                  <td className="px-6 py-4 text-right">
+                    <a 
+                      href="/linkedin" 
+                      className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline"
+                    >
+                      New Review
+                    </a>
+                  </td>
+                </tr>
+              ))}
+
               {/* Render Latest CV Review if available */}
               {latestCv && (
                 <tr className="hover:bg-slate-800/20 transition-colors">
@@ -149,7 +181,7 @@ export default function HistoryPage() {
               })}
 
               {/* Empty State */}
-              {!latestCv && interviews.length === 0 && (
+              {!latestCv && interviews.length === 0 && linkedinReviews.length === 0 && (
                 <tr>
                   <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
                     No history found. Try uploading a CV or practicing an HR interview first!

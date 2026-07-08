@@ -5,10 +5,12 @@ import com.careercoach.backend.dto.LinkedinReviewResponse;
 import com.careercoach.backend.entity.LinkedinReview;
 import com.careercoach.backend.entity.User;
 import com.careercoach.backend.repository.LinkedinReviewRepository;
+import com.careercoach.backend.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,12 +24,13 @@ public class LinkedinReviewService {
 
     private final LinkedinReviewRepository linkedinReviewRepository;
     private final GeminiService geminiService;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
     @Transactional
     public LinkedinReviewResponse createReview(String username, LinkedinReviewRequest request) {
-        User user = userService.getUserByUsername(username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         String jsonResponse = geminiService.generateLinkedinReview(request.getHeadline(), request.getAbout(), request.getExperience());
 
@@ -62,7 +65,8 @@ public class LinkedinReviewService {
     }
 
     public List<LinkedinReviewResponse> getUserReviews(String username) {
-        User user = userService.getUserByUsername(username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return linkedinReviewRepository.findByUserOrderByCreatedAtDesc(user)
                 .stream()
                 .map(this::mapToResponse)
