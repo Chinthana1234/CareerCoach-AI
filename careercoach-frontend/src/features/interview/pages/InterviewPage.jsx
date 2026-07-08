@@ -401,6 +401,7 @@ export default function InterviewPage() {
             activeMode === 'TECHNICAL' ? 'Start Technical Interview Session' : 'Start Mock Interview Session'
           )}
         </button>
+      </div>
     </div>
   );
 }
