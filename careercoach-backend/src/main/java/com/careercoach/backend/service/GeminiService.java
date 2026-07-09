@@ -147,6 +147,69 @@ public class GeminiService {
         }
     }
 
+    public String generateCareerRoadmap(String role) {
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            log.warn("GEMINI_API_KEY is not set. Falling back to mock roadmap.");
+            return getMockRoadmapJson(role);
+        }
+
+        try {
+            String prompt = "You are an expert tech career coach.\n" +
+                    "Generate a detailed learning roadmap for becoming a " + role + ".\n" +
+                    "Provide the timeline (month by month) and recommended projects.\n" +
+                    "Do not return any conversational text outside the JSON block.\n\n" +
+                    "Required JSON format:\n" +
+                    "{\n" +
+                    "  \"timeline\": [\n" +
+                    "    {\n" +
+                    "      \"month\": \"Month 1\",\n" +
+                    "      \"focus\": \"<Topic>\",\n" +
+                    "      \"description\": \"<Brief description>\",\n" +
+                    "      \"skills\": [\"<Skill 1>\", \"<Skill 2>\"]\n" +
+                    "    }\n" +
+                    "  ],\n" +
+                    "  \"projects\": [\n" +
+                    "    {\n" +
+                    "      \"name\": \"<Project Name>\",\n" +
+                    "      \"description\": \"<Project description>\",\n" +
+                    "      \"difficulty\": \"<Beginner/Intermediate/Advanced>\"\n" +
+                    "    }\n" +
+                    "  ]\n" +
+                    "}";
+
+            return callGeminiApi(prompt, true);
+        } catch (Exception e) {
+            log.error("Error calling Gemini for roadmap generation, falling back", e);
+            return getMockRoadmapJson(role);
+        }
+    }
+
+    private String getMockRoadmapJson(String role) {
+        return "{\n" +
+                "  \"timeline\": [\n" +
+                "    {\n" +
+                "      \"month\": \"Month 1\",\n" +
+                "      \"focus\": \"Fundamentals of " + role + "\",\n" +
+                "      \"description\": \"Learn the core concepts and basic syntax.\",\n" +
+                "      \"skills\": [\"Basics\", \"Tooling\"]\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"month\": \"Month 2\",\n" +
+                "      \"focus\": \"Advanced " + role + " Concepts\",\n" +
+                "      \"description\": \"Dive deeper into frameworks and architecture.\",\n" +
+                "      \"skills\": [\"Frameworks\", \"Architecture\"]\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"projects\": [\n" +
+                "    {\n" +
+                "      \"name\": \"Starter " + role + " Project\",\n" +
+                "      \"description\": \"Build a simple application to apply the fundamentals.\",\n" +
+                "      \"difficulty\": \"Beginner\"\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+    }
+
     private String callGeminiApi(String prompt, boolean isJson) throws Exception {
         Map<String, Object> textPart = Map.of("text", prompt);
         Map<String, Object> contentPart = Map.of("parts", java.util.List.of(textPart));
