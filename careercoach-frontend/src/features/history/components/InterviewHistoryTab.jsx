@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { getInterviewHistory } from '../../../api/interviewService';
 import { useNavigate } from 'react-router-dom';
+import Pagination from './Pagination';
 
 export default function InterviewHistoryTab() {
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,7 +34,10 @@ export default function InterviewHistoryTab() {
     if (!window.confirm("Are you sure you want to delete this interview session?")) return;
     try {
       await import('../../../api/interviewService').then(m => m.deleteInterview(id));
-      setInterviews(interviews.filter(i => i.id !== id));
+      const updatedInterviews = interviews.filter(i => i.id !== id);
+      setInterviews(updatedInterviews);
+      const maxPage = Math.ceil(updatedInterviews.length / itemsPerPage);
+      if (currentPage > maxPage && maxPage > 0) setCurrentPage(maxPage);
     } catch (err) {
       console.error(err);
       alert("Failed to delete interview session.");
@@ -59,70 +67,85 @@ export default function InterviewHistoryTab() {
     );
   }
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentInterviews = interviews.slice(indexOfFirstItem, indexOfLastItem);
+
   return (
-    <div>
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="border-b border-slate-800 bg-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
-            <th className="px-6 py-4">Date</th>
-            <th className="px-6 py-4">Type</th>
-            <th className="px-6 py-4">Topic / Role</th>
-            <th className="px-6 py-4">Score</th>
-            <th className="px-6 py-4 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-800/50 text-sm text-slate-300">
-          {interviews.length === 0 ? (
-            <tr>
-              <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
-                No mock interviews found. Start practicing today!
-              </td>
+    <div className="flex flex-col h-full justify-between">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-slate-800 bg-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <th className="px-6 py-4">Date</th>
+              <th className="px-6 py-4">Type</th>
+              <th className="px-6 py-4">Topic / Role</th>
+              <th className="px-6 py-4">Score</th>
+              <th className="px-6 py-4 text-right">Actions</th>
             </tr>
-          ) : (
-            interviews.map((session) => {
-              const isTech = session.interviewType === 'TECHNICAL';
-              return (
-                <tr key={session.id} className="hover:bg-slate-800/20 transition-colors">
-                  <td className="px-6 py-4 font-medium text-slate-400">{formatDate(session.createdAt)}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${
-                      isTech
-                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                        : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
-                    }`}>
-                      {isTech ? 'Technical' : 'HR Mock'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-semibold text-white">
-                    {isTech ? session.topic : session.jobTitle}
-                  </td>
-                  <td className="px-6 py-4">
-                    {session.status === 'COMPLETED' ? (
-                      <span className="text-emerald-400 font-extrabold">{session.overallScore} / 100</span>
-                    ) : (
-                      <span className="text-amber-400 font-bold italic">In Progress</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right space-x-4">
-                    <button 
-                      onClick={() => navigate(`/interview`)}
-                      className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline"
-                    >
-                      {session.status === 'COMPLETED' ? 'View Details' : 'Resume'}
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(session.id)}
-                      className="text-xs font-bold text-rose-400 hover:text-rose-300 underline"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-slate-800/50 text-sm text-slate-300">
+            {currentInterviews.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
+                  No mock interviews found. Start practicing today!
+                </td>
+              </tr>
+            ) : (
+              currentInterviews.map((session) => {
+                const isTech = session.interviewType === 'TECHNICAL';
+                return (
+                  <tr key={session.id} className="hover:bg-slate-800/20 transition-colors">
+                    <td className="px-6 py-4 font-medium text-slate-400">{formatDate(session.createdAt)}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${
+                        isTech
+                          ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                          : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                      }`}>
+                        {isTech ? 'Technical' : 'HR Mock'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-white">
+                      {isTech ? session.topic : session.jobTitle}
+                    </td>
+                    <td className="px-6 py-4">
+                      {session.status === 'COMPLETED' ? (
+                        <span className="text-emerald-400 font-extrabold">{session.overallScore} / 100</span>
+                      ) : (
+                        <span className="text-amber-400 font-bold italic">In Progress</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right space-x-4">
+                      <button 
+                        onClick={() => navigate(`/interview`)}
+                        className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline"
+                      >
+                        {session.status === 'COMPLETED' ? 'View Details' : 'Resume'}
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(session.id)}
+                        className="text-xs font-bold text-rose-400 hover:text-rose-300 underline"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {interviews.length > 0 && (
+        <Pagination 
+          currentPage={currentPage}
+          totalItems={interviews.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 }

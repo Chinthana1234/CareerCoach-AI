@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { getLinkedinReviewHistory } from '../../../api/linkedinReviewService';
 import { useNavigate } from 'react-router-dom';
+import Pagination from './Pagination';
 
 export default function LinkedinHistoryTab() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,7 +21,7 @@ export default function LinkedinHistoryTab() {
     try {
       setLoading(true);
       const res = await getLinkedinReviewHistory();
-      setReviews(res);
+      setReviews(res || []);
     } catch (err) {
       console.error(err);
       setError("Failed to load LinkedIn review history.");
@@ -29,7 +34,10 @@ export default function LinkedinHistoryTab() {
     if (!window.confirm("Are you sure you want to delete this review?")) return;
     try {
       await import('../../../api/linkedinReviewService').then(m => m.deleteLinkedinReview(id));
-      setReviews(reviews.filter(r => r.id !== id));
+      const updatedReviews = reviews.filter(r => r.id !== id);
+      setReviews(updatedReviews);
+      const maxPage = Math.ceil(updatedReviews.length / itemsPerPage);
+      if (currentPage > maxPage && maxPage > 0) setCurrentPage(maxPage);
     } catch (err) {
       console.error(err);
       alert("Failed to delete LinkedIn review.");
@@ -59,49 +67,64 @@ export default function LinkedinHistoryTab() {
     );
   }
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentReviews = reviews.slice(indexOfFirstItem, indexOfLastItem);
+
   return (
-    <div>
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="border-b border-slate-800 bg-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
-            <th className="px-6 py-4">Date</th>
-            <th className="px-6 py-4">Review Type</th>
-            <th className="px-6 py-4">Status</th>
-            <th className="px-6 py-4 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-800/50 text-sm text-slate-300">
-          {reviews.length === 0 ? (
-            <tr>
-              <td colSpan="4" className="px-6 py-12 text-center text-slate-500">
-                No LinkedIn reviews found. Generate a review!
-              </td>
+    <div className="flex flex-col h-full justify-between">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-slate-800 bg-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <th className="px-6 py-4">Date</th>
+              <th className="px-6 py-4">Headline</th>
+              <th className="px-6 py-4 text-right">Actions</th>
             </tr>
-          ) : (
-            reviews.map((review) => (
-              <tr key={`li-${review.id}`} className="hover:bg-slate-800/20 transition-colors">
-                <td className="px-6 py-4 font-medium text-slate-400">{formatDate(review.createdAt)}</td>
-                <td className="px-6 py-4 font-semibold text-white">LinkedIn Profile Review</td>
-                <td className="px-6 py-4 text-emerald-400 font-extrabold">Complete</td>
-                <td className="px-6 py-4 text-right space-x-4">
-                  <button 
-                    onClick={() => navigate(`/linkedin`)}
-                    className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline"
-                  >
-                    View Result
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(review.id)}
-                    className="text-xs font-bold text-rose-400 hover:text-rose-300 underline"
-                  >
-                    Delete
-                  </button>
+          </thead>
+          <tbody className="divide-y divide-slate-800/50 text-sm text-slate-300">
+            {currentReviews.length === 0 ? (
+              <tr>
+                <td colSpan="3" className="px-6 py-12 text-center text-slate-500">
+                  No LinkedIn reviews found. Optimize your profile today!
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              currentReviews.map((review) => (
+                <tr key={review.id} className="hover:bg-slate-800/20 transition-colors">
+                  <td className="px-6 py-4 font-medium text-slate-400">{formatDate(review.createdAt)}</td>
+                  <td className="px-6 py-4 font-semibold text-white">
+                    {review.headline || 'Unknown Role'}
+                  </td>
+                  <td className="px-6 py-4 text-right space-x-4">
+                    <button 
+                      onClick={() => navigate(`/linkedin`)}
+                      className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline"
+                    >
+                      View Details
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(review.id)}
+                      className="text-xs font-bold text-rose-400 hover:text-rose-300 underline"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {reviews.length > 0 && (
+        <Pagination 
+          currentPage={currentPage}
+          totalItems={reviews.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 }

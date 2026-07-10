@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { getAllCvReviews, getLatestCvReview } from '../../../api/cvService';
 import { useNavigate } from 'react-router-dom';
+import Pagination from './Pagination';
 
 export default function CvHistoryTab() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,12 +20,10 @@ export default function CvHistoryTab() {
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      // Attempt to get all reviews (endpoint will be ready after Commit 4)
       try {
         const res = await getAllCvReviews();
         setReviews(res.data || res);
       } catch (err) {
-        // Fallback to latest cv review if all endpoint 404s
         const fallbackRes = await getLatestCvReview();
         if (fallbackRes.data) {
           setReviews([fallbackRes.data]);
@@ -38,7 +41,10 @@ export default function CvHistoryTab() {
     if (!window.confirm("Are you sure you want to delete this CV review?")) return;
     try {
       await import('../../../api/cvService').then(m => m.deleteCvReview(id));
-      setReviews(reviews.filter(r => r.id !== id));
+      const updatedReviews = reviews.filter(r => r.id !== id);
+      setReviews(updatedReviews);
+      const maxPage = Math.ceil(updatedReviews.length / itemsPerPage);
+      if (currentPage > maxPage && maxPage > 0) setCurrentPage(maxPage);
     } catch (err) {
       console.error(err);
       alert("Failed to delete CV review.");
@@ -68,53 +74,68 @@ export default function CvHistoryTab() {
     );
   }
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentReviews = reviews.slice(indexOfFirstItem, indexOfLastItem);
+
   return (
-    <div>
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="border-b border-slate-800 bg-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
-            <th className="px-6 py-4">Date</th>
-            <th className="px-6 py-4">Review Type</th>
-            <th className="px-6 py-4">Score</th>
-            <th className="px-6 py-4 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-800/50 text-sm text-slate-300">
-          {reviews.length === 0 ? (
-            <tr>
-              <td colSpan="4" className="px-6 py-12 text-center text-slate-500">
-                No CV reviews found. Upload a CV to get started!
-              </td>
+    <div className="flex flex-col h-full justify-between">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-slate-800 bg-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <th className="px-6 py-4">Date</th>
+              <th className="px-6 py-4">Review Type</th>
+              <th className="px-6 py-4">Score</th>
+              <th className="px-6 py-4 text-right">Actions</th>
             </tr>
-          ) : (
-            reviews.map((review) => (
-              <tr key={review.id} className="hover:bg-slate-800/20 transition-colors">
-                <td className="px-6 py-4 font-medium text-slate-400">{formatDate(review.createdAt)}</td>
-                <td className="px-6 py-4">
-                  <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                    CV Review
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-emerald-400 font-extrabold">{review.overallScore} / 100</td>
-                <td className="px-6 py-4 text-right space-x-4">
-                  <button 
-                    onClick={() => navigate(`/cv-review`)}
-                    className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline"
-                  >
-                    View Dashboard
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(review.id)}
-                    className="text-xs font-bold text-rose-400 hover:text-rose-300 underline"
-                  >
-                    Delete
-                  </button>
+          </thead>
+          <tbody className="divide-y divide-slate-800/50 text-sm text-slate-300">
+            {currentReviews.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="px-6 py-12 text-center text-slate-500">
+                  No CV reviews found. Upload a CV to get started!
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              currentReviews.map((review) => (
+                <tr key={review.id} className="hover:bg-slate-800/20 transition-colors">
+                  <td className="px-6 py-4 font-medium text-slate-400">{formatDate(review.createdAt)}</td>
+                  <td className="px-6 py-4">
+                    <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                      CV Review
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-emerald-400 font-extrabold">{review.overallScore} / 100</td>
+                  <td className="px-6 py-4 text-right space-x-4">
+                    <button 
+                      onClick={() => navigate(`/cv-review`)}
+                      className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline"
+                    >
+                      View Dashboard
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(review.id)}
+                      className="text-xs font-bold text-rose-400 hover:text-rose-300 underline"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {reviews.length > 0 && (
+        <Pagination 
+          currentPage={currentPage}
+          totalItems={reviews.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 }

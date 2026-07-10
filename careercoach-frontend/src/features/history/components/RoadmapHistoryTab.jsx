@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { getRoadmapHistory } from '../../../api/roadmapService';
 import { useNavigate } from 'react-router-dom';
+import Pagination from './Pagination';
 
 export default function RoadmapHistoryTab() {
   const [roadmaps, setRoadmaps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,7 +21,7 @@ export default function RoadmapHistoryTab() {
     try {
       setLoading(true);
       const res = await getRoadmapHistory();
-      setRoadmaps(res.data || res); // Depending on axios structure
+      setRoadmaps(res.data || res);
     } catch (err) {
       console.error(err);
       setError("Failed to load roadmap history.");
@@ -29,7 +34,10 @@ export default function RoadmapHistoryTab() {
     if (!window.confirm("Are you sure you want to delete this roadmap?")) return;
     try {
       await import('../../../api/roadmapService').then(m => m.deleteRoadmap(id));
-      setRoadmaps(roadmaps.filter(r => r.id !== id));
+      const updatedRoadmaps = roadmaps.filter(r => r.id !== id);
+      setRoadmaps(updatedRoadmaps);
+      const maxPage = Math.ceil(updatedRoadmaps.length / itemsPerPage);
+      if (currentPage > maxPage && maxPage > 0) setCurrentPage(maxPage);
     } catch (err) {
       console.error(err);
       alert("Failed to delete roadmap.");
@@ -59,49 +67,64 @@ export default function RoadmapHistoryTab() {
     );
   }
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentRoadmaps = roadmaps.slice(indexOfFirstItem, indexOfLastItem);
+
   return (
-    <div>
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="border-b border-slate-800 bg-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
-            <th className="px-6 py-4">Date</th>
-            <th className="px-6 py-4">Target Role</th>
-            <th className="px-6 py-4 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-800/50 text-sm text-slate-300">
-          {roadmaps.length === 0 ? (
-            <tr>
-              <td colSpan="3" className="px-6 py-12 text-center text-slate-500">
-                No career roadmaps found. Generate one today!
-              </td>
+    <div className="flex flex-col h-full justify-between">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-slate-800 bg-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <th className="px-6 py-4">Date</th>
+              <th className="px-6 py-4">Target Role</th>
+              <th className="px-6 py-4 text-right">Actions</th>
             </tr>
-          ) : (
-            roadmaps.map((roadmap) => (
-              <tr key={roadmap.id} className="hover:bg-slate-800/20 transition-colors">
-                <td className="px-6 py-4 font-medium text-slate-400">{formatDate(roadmap.createdAt)}</td>
-                <td className="px-6 py-4 font-semibold text-white">
-                  {roadmap.targetRole || 'Career Roadmap'}
-                </td>
-                <td className="px-6 py-4 text-right space-x-4">
-                  <button 
-                    onClick={() => navigate(`/roadmap?id=${roadmap.id}`)}
-                    className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline"
-                  >
-                    View Roadmap
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(roadmap.id)}
-                    className="text-xs font-bold text-rose-400 hover:text-rose-300 underline"
-                  >
-                    Delete
-                  </button>
+          </thead>
+          <tbody className="divide-y divide-slate-800/50 text-sm text-slate-300">
+            {currentRoadmaps.length === 0 ? (
+              <tr>
+                <td colSpan="3" className="px-6 py-12 text-center text-slate-500">
+                  No career roadmaps found. Generate one today!
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              currentRoadmaps.map((roadmap) => (
+                <tr key={roadmap.id} className="hover:bg-slate-800/20 transition-colors">
+                  <td className="px-6 py-4 font-medium text-slate-400">{formatDate(roadmap.createdAt)}</td>
+                  <td className="px-6 py-4 font-semibold text-white">
+                    {roadmap.targetRole || 'Career Roadmap'}
+                  </td>
+                  <td className="px-6 py-4 text-right space-x-4">
+                    <button 
+                      onClick={() => navigate(`/roadmap?id=${roadmap.id}`)}
+                      className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline"
+                    >
+                      View Roadmap
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(roadmap.id)}
+                      className="text-xs font-bold text-rose-400 hover:text-rose-300 underline"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {roadmaps.length > 0 && (
+        <Pagination 
+          currentPage={currentPage}
+          totalItems={roadmaps.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 }
