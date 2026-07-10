@@ -27,8 +27,19 @@ public class LinkedinReviewController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<List<LinkedinReviewResponse>> getReviewHistory(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return ResponseEntity.ok(linkedinReviewService.getUserReviews(userDetails.getUsername()));
+    public ResponseEntity<List<LinkedinReviewResponse>> getReviewHistory(Principal principal) {
+        return ResponseEntity.ok(linkedinReviewService.getUserReviews(principal.getName()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteReview(@PathVariable Long id, Principal principal) {
+        try {
+            linkedinReviewService.deleteReview(principal.getName(), id);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).build();
+        }
     }
 }

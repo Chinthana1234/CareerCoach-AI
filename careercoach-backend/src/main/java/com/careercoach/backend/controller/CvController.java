@@ -102,4 +102,31 @@ public class CvController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
         }
     }
+
+    @GetMapping("/reviews")
+    public ResponseEntity<?> getAllReviews(Principal principal) {
+        try {
+            return ResponseEntity.ok(cvReviewService.getAllReviews(principal.getName()));
+        } catch (Exception e) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Failed to retrieve CV reviews: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
+        }
+    }
+
+    @DeleteMapping("/review/{id}")
+    public ResponseEntity<?> deleteReview(@PathVariable("id") Long id, Principal principal) {
+        try {
+            cvReviewService.deleteReview(principal.getName(), id);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (Exception e) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Failed to delete review: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
+        }
+    }
 }

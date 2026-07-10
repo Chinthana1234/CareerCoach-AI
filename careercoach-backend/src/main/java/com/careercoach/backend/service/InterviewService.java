@@ -246,6 +246,19 @@ public class InterviewService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void deleteSession(String username, UUID sessionId) {
+        User user = getUserByUsername(username);
+        InterviewSession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("Interview session not found"));
+
+        if (!session.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("Unauthorized access to delete interview session");
+        }
+
+        sessionRepository.delete(session);
+    }
+
     private String formatHistory(List<InterviewMessage> messages) {
         StringBuilder sb = new StringBuilder();
         for (InterviewMessage msg : messages) {

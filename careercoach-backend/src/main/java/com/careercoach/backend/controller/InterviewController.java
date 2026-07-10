@@ -56,4 +56,16 @@ public class InterviewController {
     public ResponseEntity<List<InterviewSessionDto>> getHistory(Principal principal) {
         return ResponseEntity.ok(interviewService.getHistory(principal.getName()));
     }
+
+    @DeleteMapping("/{sessionId}")
+    public ResponseEntity<?> deleteSession(@PathVariable UUID sessionId, Principal principal) {
+        try {
+            interviewService.deleteSession(principal.getName(), sessionId);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).build();
+        }
+    }
 }

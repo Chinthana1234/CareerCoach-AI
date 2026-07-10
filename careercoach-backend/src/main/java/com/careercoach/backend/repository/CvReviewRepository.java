@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface CvReviewRepository extends JpaRepository<CvReview, Long> {
     Optional<CvReview> findByCvDocumentId(Long cvDocumentId);
     Optional<CvReview> findFirstByCvDocumentUserIdOrderByCreatedAtDesc(Long userId);
+    java.util.List<CvReview> findAllByCvDocumentUserIdOrderByCreatedAtDesc(Long userId);
 }

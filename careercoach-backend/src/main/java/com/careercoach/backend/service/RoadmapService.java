@@ -67,6 +67,20 @@ public class RoadmapService {
         return roadmaps.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
+    public void deleteRoadmap(String username, Long id) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        CareerRoadmap roadmap = roadmapRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Roadmap not found"));
+
+        if (!roadmap.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("Unauthorized access to delete roadmap");
+        }
+
+        roadmapRepository.delete(roadmap);
+    }
+
     private RoadmapResponse mapToResponse(CareerRoadmap roadmap) {
         return RoadmapResponse.builder()
                 .id(roadmap.getId())

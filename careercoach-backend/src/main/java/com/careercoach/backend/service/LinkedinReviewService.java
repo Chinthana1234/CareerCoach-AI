@@ -73,6 +73,21 @@ public class LinkedinReviewService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void deleteReview(String username, Long id) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        LinkedinReview review = linkedinReviewRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Review not found"));
+
+        if (!review.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("Unauthorized access to delete linkedin review");
+        }
+
+        linkedinReviewRepository.delete(review);
+    }
+
     private LinkedinReviewResponse mapToResponse(LinkedinReview review) {
         return LinkedinReviewResponse.builder()
                 .id(review.getId())

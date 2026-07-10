@@ -105,6 +105,30 @@ public class CvReviewService {
         return mapToDto(review);
     }
 
+    @Transactional(readOnly = true)
+    public List<CvReviewResponseDto> getAllReviews(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        List<CvReview> reviews = cvReviewRepository.findAllByCvDocumentUserIdOrderByCreatedAtDesc(user.getId());
+        return reviews.stream().map(this::mapToDto).toList();
+    }
+
+    @Transactional
+    public void deleteReview(String username, Long reviewId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        CvReview review = cvReviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("Review not found: " + reviewId));
+
+        if (!review.getCvDocument().getUser().getId().equals(user.getId())) {
+            throw new SecurityException("Unauthorized access to delete review");
+        }
+
+        cvReviewRepository.delete(review);
+    }
+
     private CvReviewResponseDto mapToDto(CvReview review) {
         return CvReviewResponseDto.builder()
                 .id(review.getId())

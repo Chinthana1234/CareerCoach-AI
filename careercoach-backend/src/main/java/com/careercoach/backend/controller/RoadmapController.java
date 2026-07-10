@@ -27,7 +27,23 @@ public class RoadmapController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<List<RoadmapResponse>> getHistory(Principal principal) {
-        return ResponseEntity.ok(roadmapService.getHistory(principal.getName()));
+    public ResponseEntity<?> getHistory(Principal principal) {
+        try {
+            return ResponseEntity.ok(roadmapService.getHistory(principal.getName()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteRoadmap(@PathVariable Long id, Principal principal) {
+        try {
+            roadmapService.deleteRoadmap(principal.getName(), id);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).build();
+        }
     }
 }
