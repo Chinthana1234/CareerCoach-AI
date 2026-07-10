@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getRoadmapHistory } from '../../../api/roadmapService';
 import { useNavigate } from 'react-router-dom';
 import Pagination from './Pagination';
+import SearchBar from './SearchBar';
 
 export default function RoadmapHistoryTab() {
   const [roadmaps, setRoadmaps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -51,6 +54,19 @@ export default function RoadmapHistoryTab() {
     });
   };
 
+  const filteredRoadmaps = useMemo(() => {
+    if (!searchQuery) return roadmaps;
+    const lowerQuery = searchQuery.toLowerCase();
+    return roadmaps.filter(r => 
+      (r.role && r.role.toLowerCase().includes(lowerQuery)) ||
+      (r.targetRole && r.targetRole.toLowerCase().includes(lowerQuery))
+    );
+  }, [roadmaps, searchQuery]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -69,11 +85,16 @@ export default function RoadmapHistoryTab() {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentRoadmaps = roadmaps.slice(indexOfFirstItem, indexOfLastItem);
+  const currentRoadmaps = filteredRoadmaps.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="flex flex-col h-full justify-between">
       <div className="overflow-x-auto">
+        <SearchBar 
+          value={searchQuery} 
+          onChange={setSearchQuery} 
+          placeholder="Search by role..." 
+        />
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-slate-800 bg-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -117,10 +138,10 @@ export default function RoadmapHistoryTab() {
         </table>
       </div>
 
-      {roadmaps.length > 0 && (
+      {filteredRoadmaps.length > 0 && (
         <Pagination 
           currentPage={currentPage}
-          totalItems={roadmaps.length}
+          totalItems={filteredRoadmaps.length}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
         />

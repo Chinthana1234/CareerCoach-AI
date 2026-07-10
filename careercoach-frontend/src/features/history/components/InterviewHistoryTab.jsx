@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getInterviewHistory } from '../../../api/interviewService';
 import { useNavigate } from 'react-router-dom';
 import Pagination from './Pagination';
+import SearchBar from './SearchBar';
 
 export default function InterviewHistoryTab() {
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -51,6 +54,21 @@ export default function InterviewHistoryTab() {
     });
   };
 
+  const filteredInterviews = useMemo(() => {
+    if (!searchQuery) return interviews;
+    const lowerQuery = searchQuery.toLowerCase();
+    return interviews.filter(i => 
+      (i.topic && i.topic.toLowerCase().includes(lowerQuery)) ||
+      (i.jobTitle && i.jobTitle.toLowerCase().includes(lowerQuery)) ||
+      (i.interviewType && i.interviewType.toLowerCase().includes(lowerQuery))
+    );
+  }, [interviews, searchQuery]);
+
+  // Reset to page 1 on search
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -69,11 +87,16 @@ export default function InterviewHistoryTab() {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentInterviews = interviews.slice(indexOfFirstItem, indexOfLastItem);
+  const currentInterviews = filteredInterviews.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="flex flex-col h-full justify-between">
       <div className="overflow-x-auto">
+        <SearchBar 
+          value={searchQuery} 
+          onChange={setSearchQuery} 
+          placeholder="Search by topic, role, or type..." 
+        />
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-slate-800 bg-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -138,10 +161,10 @@ export default function InterviewHistoryTab() {
         </table>
       </div>
 
-      {interviews.length > 0 && (
+      {filteredInterviews.length > 0 && (
         <Pagination 
           currentPage={currentPage}
-          totalItems={interviews.length}
+          totalItems={filteredInterviews.length}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
         />

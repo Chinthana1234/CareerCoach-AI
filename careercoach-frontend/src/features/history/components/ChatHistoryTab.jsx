@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getChatSessions, deleteChatSession } from '../../../api/chatService';
 import { useNavigate } from 'react-router-dom';
 import Pagination from './Pagination';
+import SearchBar from './SearchBar';
 
 export default function ChatHistoryTab() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,6 +57,18 @@ export default function ChatHistoryTab() {
     });
   };
 
+  const filteredSessions = useMemo(() => {
+    if (!searchQuery) return sessions;
+    return sessions.filter(s => 
+      (s.title || 'Untitled Chat').toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [sessions, searchQuery]);
+
+  // Reset to page 1 on search
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -73,11 +88,16 @@ export default function ChatHistoryTab() {
   // Calculate paginated items
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentSessions = sessions.slice(indexOfFirstItem, indexOfLastItem);
+  const currentSessions = filteredSessions.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="flex flex-col h-full justify-between">
       <div className="overflow-x-auto">
+        <SearchBar 
+          value={searchQuery} 
+          onChange={setSearchQuery} 
+          placeholder="Search chat sessions by title..." 
+        />
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-slate-800 bg-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -121,10 +141,10 @@ export default function ChatHistoryTab() {
         </table>
       </div>
       
-      {sessions.length > 0 && (
+      {filteredSessions.length > 0 && (
         <Pagination 
           currentPage={currentPage}
-          totalItems={sessions.length}
+          totalItems={filteredSessions.length}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
         />

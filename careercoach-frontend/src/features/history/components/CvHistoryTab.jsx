@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getAllCvReviews, getLatestCvReview } from '../../../api/cvService';
 import { useNavigate } from 'react-router-dom';
 import Pagination from './Pagination';
+import SearchBar from './SearchBar';
 
 export default function CvHistoryTab() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const [searchQuery, setSearchQuery] = useState('');
   
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -58,6 +61,21 @@ export default function CvHistoryTab() {
     });
   };
 
+  const filteredReviews = useMemo(() => {
+    if (!searchQuery) return reviews;
+    // In CV history, maybe search by ID or type (since CV has less text fields right now).
+    // Let's filter by the score as string or type.
+    return reviews.filter(r => 
+      'cv review'.includes(searchQuery.toLowerCase()) || 
+      (r.overallScore && r.overallScore.toString().includes(searchQuery))
+    );
+  }, [reviews, searchQuery]);
+
+  // Reset to page 1 on search
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -76,11 +94,16 @@ export default function CvHistoryTab() {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentReviews = reviews.slice(indexOfFirstItem, indexOfLastItem);
+  const currentReviews = filteredReviews.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="flex flex-col h-full justify-between">
       <div className="overflow-x-auto">
+        <SearchBar 
+          value={searchQuery} 
+          onChange={setSearchQuery} 
+          placeholder="Search by score or type..." 
+        />
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-slate-800 bg-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -128,10 +151,10 @@ export default function CvHistoryTab() {
         </table>
       </div>
 
-      {reviews.length > 0 && (
+      {filteredReviews.length > 0 && (
         <Pagination 
           currentPage={currentPage}
-          totalItems={reviews.length}
+          totalItems={filteredReviews.length}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
         />

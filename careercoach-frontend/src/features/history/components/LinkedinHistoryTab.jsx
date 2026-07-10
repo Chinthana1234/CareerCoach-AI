@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getLinkedinReviewHistory } from '../../../api/linkedinReviewService';
 import { useNavigate } from 'react-router-dom';
 import Pagination from './Pagination';
+import SearchBar from './SearchBar';
 
 export default function LinkedinHistoryTab() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -51,6 +54,18 @@ export default function LinkedinHistoryTab() {
     });
   };
 
+  const filteredReviews = useMemo(() => {
+    if (!searchQuery) return reviews;
+    const lowerQuery = searchQuery.toLowerCase();
+    return reviews.filter(r => 
+      (r.headline && r.headline.toLowerCase().includes(lowerQuery))
+    );
+  }, [reviews, searchQuery]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -69,11 +84,16 @@ export default function LinkedinHistoryTab() {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentReviews = reviews.slice(indexOfFirstItem, indexOfLastItem);
+  const currentReviews = filteredReviews.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="flex flex-col h-full justify-between">
       <div className="overflow-x-auto">
+        <SearchBar 
+          value={searchQuery} 
+          onChange={setSearchQuery} 
+          placeholder="Search by headline..." 
+        />
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-slate-800 bg-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -117,10 +137,10 @@ export default function LinkedinHistoryTab() {
         </table>
       </div>
 
-      {reviews.length > 0 && (
+      {filteredReviews.length > 0 && (
         <Pagination 
           currentPage={currentPage}
-          totalItems={reviews.length}
+          totalItems={filteredReviews.length}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
         />
