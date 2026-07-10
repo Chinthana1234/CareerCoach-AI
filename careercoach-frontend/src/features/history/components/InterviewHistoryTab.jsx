@@ -25,10 +25,15 @@ export default function InterviewHistoryTab() {
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this interview session?")) return;
-    setInterviews(interviews.filter(i => i.id !== id));
-    alert("Interview deleted from view (Backend integration pending in Step 4/5).");
+    try {
+      await import('../../../api/interviewService').then(m => m.deleteInterview(id));
+      setInterviews(interviews.filter(i => i.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete interview session.");
+    }
   };
 
   const formatDate = (dateStr) => {

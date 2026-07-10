@@ -25,11 +25,15 @@ export default function RoadmapHistoryTab() {
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this roadmap?")) return;
-    // Mock delete for now until backend is updated in Commit 4
-    setRoadmaps(roadmaps.filter(r => r.id !== id));
-    alert("Roadmap deleted from view (Backend integration pending in Step 4/5).");
+    try {
+      await import('../../../api/roadmapService').then(m => m.deleteRoadmap(id));
+      setRoadmaps(roadmaps.filter(r => r.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete roadmap.");
+    }
   };
 
   const formatDate = (dateStr) => {

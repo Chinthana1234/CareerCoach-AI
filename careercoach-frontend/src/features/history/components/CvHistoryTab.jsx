@@ -34,10 +34,15 @@ export default function CvHistoryTab() {
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this CV review?")) return;
-    setReviews(reviews.filter(r => r.id !== id));
-    alert("CV review deleted from view (Backend integration pending in Step 4/5).");
+    try {
+      await import('../../../api/cvService').then(m => m.deleteCvReview(id));
+      setReviews(reviews.filter(r => r.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete CV review.");
+    }
   };
 
   const formatDate = (dateStr) => {

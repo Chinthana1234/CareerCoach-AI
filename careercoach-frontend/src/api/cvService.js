@@ -22,3 +22,6 @@ export const getLatestCvReview = () => API.get('/cv/review/latest');
 
 // Get all CV reviews for the current user (will be implemented in backend in step 4)
 export const getAllCvReviews = () => API.get('/cv/reviews');
+
+// Delete a CV review
+export const deleteCvReview = (id) => API.delete(`/cv/review/${id}`);

@@ -25,10 +25,15 @@ export default function LinkedinHistoryTab() {
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this review?")) return;
-    setReviews(reviews.filter(r => r.id !== id));
-    alert("Review deleted from view (Backend integration pending in Step 4/5).");
+    try {
+      await import('../../../api/linkedinReviewService').then(m => m.deleteLinkedinReview(id));
+      setReviews(reviews.filter(r => r.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete LinkedIn review.");
+    }
   };
 
   const formatDate = (dateStr) => {

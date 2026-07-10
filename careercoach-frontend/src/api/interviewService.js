@@ -30,3 +30,8 @@ export const getInterviewMessages = (sessionId) => {
 export const getInterviewHistory = () => {
   return API.get('/interview/history');
 };
+
+// Delete an interview session
+export const deleteInterview = (id) => {
+  return API.delete(`/interview/${id}`);
+};

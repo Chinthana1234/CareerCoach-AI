@@ -24,3 +24,8 @@ export const getRoadmapHistory = async () => {
   const response = await apiClient.get('/history');
   return response.data;
 };
+
+export const deleteRoadmap = async (id) => {
+  const response = await apiClient.delete(`/${id}`);
+  return response.data;
+};
