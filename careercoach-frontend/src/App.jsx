@@ -2,10 +2,13 @@ import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import AdminProtectedRoute from './components/auth/AdminProtectedRoute'
 import DashboardLayout from './components/layout/DashboardLayout'
 import LoginPage from './features/auth/pages/LoginPage'
 import RegisterPage from './features/auth/pages/RegisterPage'
 import DashboardPage from './features/dashboard/pages/DashboardPage'
+import AdminDashboardPage from './features/admin/pages/AdminDashboardPage'
+import AdminUsersPage from './features/admin/pages/AdminUsersPage'
 import ChatPage from './features/chat/pages/ChatPage'
 import CvReviewPage from './features/cv-review/pages/CvReviewPage'
 import InterviewPage from './features/interview/pages/InterviewPage'
@@ -37,6 +40,15 @@ function App() {
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
+            </Route>
+          </Route>
+
+          {/* Protected admin routes */}
+          <Route element={<AdminProtectedRoute />}>
+            <Route element={<DashboardLayout />}>
+              <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+              <Route path="/admin/users" element={<AdminUsersPage />} />
             </Route>
           </Route>
 
