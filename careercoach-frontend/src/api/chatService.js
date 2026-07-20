@@ -7,7 +7,7 @@ export const getChatSessions = () => API.get('/chat/sessions');
 export const createChatSession = (title) => {
   const url = title ? `/chat/sessions?title=${encodeURIComponent(title)}` : '/chat/sessions';
   return API.post(url);
-};
+};  
 
 // Delete a chat session
 export const deleteChatSession = (sessionId) => API.delete(`/chat/sessions/${sessionId}`);
