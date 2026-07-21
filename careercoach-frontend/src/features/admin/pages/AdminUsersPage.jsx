@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAllUsers, deleteUser, updateUserRole } from '../../../api/adminService';
+import Spinner from '../../../components/common/Spinner';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
@@ -43,11 +44,15 @@ export default function AdminUsersPage() {
   };
 
   if (loading) {
-    return <div className="text-white p-8">Loading users...</div>;
+    return (
+      <div className="flex justify-center items-center h-[60vh]">
+        <Spinner size="lg" />
+      </div>
+    );
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
       <header className="mb-8">
         <h1 className="text-3xl font-bold font-display text-white mb-2">Manage Users</h1>
         <p className="text-slate-400">View and manage platform users and their roles.</p>
@@ -109,3 +114,4 @@ export default function AdminUsersPage() {
     </div>
   );
 
+}

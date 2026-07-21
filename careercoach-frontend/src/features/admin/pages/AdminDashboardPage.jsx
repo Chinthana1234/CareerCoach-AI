@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getDashboardStats, getChartData } from '../../../api/adminService';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import Spinner from '../../../components/common/Spinner';
 
 function StatCard({ title, value, icon, color }) {
   return (
@@ -40,11 +41,15 @@ export default function AdminDashboardPage() {
   }, []);
 
   if (loading) {
-    return <div className="text-white p-8">Loading dashboard...</div>;
+    return (
+      <div className="flex justify-center items-center h-[60vh]">
+        <Spinner size="lg" />
+      </div>
+    );
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
       <header className="mb-8">
         <h1 className="text-3xl font-bold font-display text-white mb-2">Admin Dashboard</h1>
         <p className="text-slate-400">Platform overview and statistics</p>
