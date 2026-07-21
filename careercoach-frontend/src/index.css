@@ -34,6 +34,25 @@ body {
 /* Global utility classes for glassmorphism */
 @layer utilities {
   .glass-panel {
-    @apply bg-slate-900/60 backdrop-blur-xl border border-slate-800/80;
+    @apply bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 shadow-lg shadow-black/20;
   }
+  .glass-input {
+    @apply bg-slate-900/50 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300;
+  }
+  .btn-primary {
+    @apply bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-300 shadow-md hover:shadow-indigo-500/25 active:scale-95 flex items-center justify-center gap-2;
+  }
+  .btn-secondary {
+    @apply bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-xl transition-all duration-300 border border-slate-700 hover:border-slate-600 active:scale-95 flex items-center justify-center gap-2;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
 }
