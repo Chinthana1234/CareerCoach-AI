@@ -82,16 +82,16 @@ export default function Sidebar({ mobile = false, onClose }) {
   };
 
   return (
-    <aside className={`${mobile ? 'w-full' : 'w-64'} bg-slate-900/95 backdrop-blur-xl border-r border-slate-800/80 flex flex-col h-screen`}>
+    <aside aria-label="Main Navigation" className={`${mobile ? 'w-full' : 'w-64'} bg-slate-900/95 backdrop-blur-xl border-r border-slate-800/80 flex flex-col h-screen`}>
       {/* Logo */}
       <div className="p-5 border-b border-slate-800/80 flex items-center justify-between">
         <h1 className="text-lg font-bold font-display text-white tracking-wide flex items-center gap-2.5">
-          <span className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-sm">🚀</span>
+          <span className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-sm" aria-hidden="true">🚀</span>
           <span>Career<span className="text-indigo-400">Coach</span></span>
         </h1>
         {mobile && (
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-1">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <button onClick={onClose} aria-label="Close Sidebar" className="text-slate-400 hover:text-white transition-colors p-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -99,30 +99,32 @@ export default function Sidebar({ mobile = false, onClose }) {
       </div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        <p className="px-4 pt-2 pb-2 text-[11px] font-semibold text-slate-500 uppercase tracking-widest">Main Menu</p>
-        {mainMenuItems.map((item) => (
-          <SidebarLink key={item.path} item={item} />
-        ))}
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto" aria-label="Sidebar Menu">
+        <p className="px-4 pt-2 pb-2 text-[11px] font-semibold text-slate-500 uppercase tracking-widest" id="main-menu-heading">Main Menu</p>
+        <div aria-labelledby="main-menu-heading">
+          {mainMenuItems.map((item) => (
+            <SidebarLink key={item.path} item={item} />
+          ))}
+        </div>
 
         {user?.role === 'ADMIN' && (
-          <div className="pt-4">
-            <p className="px-4 pt-2 pb-2 text-[11px] font-semibold text-indigo-400 uppercase tracking-widest">Admin</p>
+          <div className="pt-4" aria-labelledby="admin-menu-heading">
+            <p className="px-4 pt-2 pb-2 text-[11px] font-semibold text-indigo-400 uppercase tracking-widest" id="admin-menu-heading">Admin</p>
             <SidebarLink item={{ name: 'Dashboard', path: '/admin/dashboard', icon: (
-              <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             )}} />
             <SidebarLink item={{ name: 'Manage Users', path: '/admin/users', icon: (
-              <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             )}} />
           </div>
         )}
 
-        <div className="pt-4">
-          <p className="px-4 pt-2 pb-2 text-[11px] font-semibold text-slate-500 uppercase tracking-widest">Account</p>
+        <div className="pt-4" aria-labelledby="account-menu-heading">
+          <p className="px-4 pt-2 pb-2 text-[11px] font-semibold text-slate-500 uppercase tracking-widest" id="account-menu-heading">Account</p>
           {bottomMenuItems.map((item) => (
             <SidebarLink key={item.path} item={item} />
           ))}
@@ -133,7 +135,7 @@ export default function Sidebar({ mobile = false, onClose }) {
       <div className="p-3 border-t border-slate-800/80">
         {user && (
           <div className="flex items-center gap-3 px-3 py-2.5 mb-2 rounded-xl bg-slate-800/50">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-sm font-bold text-white font-display uppercase flex-shrink-0">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-sm font-bold text-white font-display uppercase flex-shrink-0" aria-hidden="true">
               {user.username?.charAt(0)}
             </div>
             <div className="min-w-0 flex-1">
@@ -144,9 +146,10 @@ export default function Sidebar({ mobile = false, onClose }) {
         )}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-2.5 w-full rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200"
+          aria-label="Logout"
+          className="flex items-center gap-3 px-4 py-2.5 w-full rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
           Logout
