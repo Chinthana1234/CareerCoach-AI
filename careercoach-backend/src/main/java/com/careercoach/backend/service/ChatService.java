@@ -9,6 +9,7 @@ import com.careercoach.backend.repository.ChatMessageRepository;
 import com.careercoach.backend.repository.ChatSessionRepository;
 import com.careercoach.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatService {
 
     private final ChatSessionRepository chatSessionRepository;
@@ -139,6 +141,7 @@ public class ChatService {
 
     @Transactional
     public SseEmitter streamChat(String username, UUID sessionId, String prompt) {
+        log.info("Starting chat stream for user: {} in session: {}", username, sessionId);
         User user = getUserByUsername(username);
         ChatSession session = getSessionValidated(sessionId, user);
 
