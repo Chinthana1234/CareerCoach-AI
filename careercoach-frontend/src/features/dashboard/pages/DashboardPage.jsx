@@ -100,26 +100,26 @@ export default function DashboardPage() {
       {/* Welcome + Profile Card */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 p-6 sm:p-8">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute -top-10 -right-10 w-60 h-60 bg-white rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-purple-300 rounded-full blur-3xl"></div>
+          <div className="absolute -top-10 -right-10 w-60 h-60 bg-black rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-black rounded-full blur-3xl"></div>
         </div>
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl font-bold text-white font-display uppercase border border-white/10">
+            <div className="w-14 h-14 rounded-2xl bg-black/10 backdrop-blur-sm flex items-center justify-center text-2xl font-bold text-black font-display uppercase border border-black/10">
               {user?.username?.charAt(0)}
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-white tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-black tracking-tight">
                 {getGreeting()}, {user?.username} 👋
               </h1>
-              <p className="text-indigo-100/70 text-sm mt-0.5">
+              <p className="text-black/70 text-sm mt-0.5">
                 Ready to level up your career? Pick an action below to get started.
               </p>
             </div>
           </div>
           <button
             onClick={() => navigate('/profile')}
-            className="self-start sm:self-center px-5 py-2.5 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white text-sm font-semibold rounded-xl border border-white/10 transition-all duration-200"
+            className="self-start sm:self-center px-5 py-2.5 bg-black/10 hover:bg-black/20 backdrop-blur-sm text-black text-sm font-bold rounded-xl border border-black/10 transition-all duration-200"
           >
             View Profile
           </button>

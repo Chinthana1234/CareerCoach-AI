@@ -3,11 +3,42 @@
 @theme {
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-display: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  
+  /* Overriding Slate with Blue Whale variations */
+  --color-slate-50: #dff7f9;
+  --color-slate-100: #bbedf2;
+  --color-slate-200: #89ced6;
+  --color-slate-300: #5eb1bb;
+  --color-slate-400: #39959f;
+  --color-slate-500: #257b85;
+  --color-slate-600: #16616a;
+  --color-slate-700: #0a4a52;
+  --color-slate-800: #03363D; /* Blue Whale */
+  --color-slate-900: #02282d;
+  --color-slate-950: #011b1f;
+
+  /* Overriding Indigo with Jet Stream variations */
+  --color-indigo-50: #edf5f5;
+  --color-indigo-100: #dbeceb;
+  --color-indigo-200: #cbe3e1;
+  --color-indigo-300: #a6cdca;
+  --color-indigo-400: #BDD9D7; /* Jet Stream */
+  --color-indigo-500: #9bc6c3; 
+  --color-indigo-600: #7eb0ac;
+  --color-indigo-700: #659793;
+  --color-indigo-800: #4f7b78;
+  --color-indigo-900: #3b5f5c;
+  --color-indigo-950: #254240;
+
+  /* Overriding Purple to align with Jet Stream for gradients */
+  --color-purple-500: #cbe3e1;
+  --color-purple-600: #BDD9D7; /* Jet Stream */
+  --color-purple-700: #a6cdca;
 }
 
 body {
-  background-color: #020617; /* bg-slate-950 */
-  color: #f8fafc; /* text-slate-50 */
+  background-color: #011b1f; /* bg-slate-950 */
+  color: #dff7f9; /* text-slate-50 */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -23,12 +54,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155; /* slate-700 */
+  background: #0a4a52; /* slate-700 */
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569; /* slate-600 */
+  background: #16616a; /* slate-600 */
 }
 
 /* Global utility classes for glassmorphism */
@@ -37,13 +68,13 @@ body {
     @apply bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 shadow-lg shadow-black/20;
   }
   .glass-input {
-    @apply bg-slate-900/50 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300;
+    @apply bg-slate-900/50 border border-slate-700/80 rounded-xl text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300;
   }
   .btn-primary {
-    @apply bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-300 shadow-md hover:shadow-indigo-500/25 active:scale-95 flex items-center justify-center gap-2;
+    @apply bg-gradient-to-r from-indigo-400 to-purple-600 hover:from-indigo-500 hover:to-purple-700 text-black font-bold rounded-xl transition-all duration-300 shadow-md hover:shadow-indigo-400/25 active:scale-95 flex items-center justify-center gap-2;
   }
   .btn-secondary {
-    @apply bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-xl transition-all duration-300 border border-slate-700 hover:border-slate-600 active:scale-95 flex items-center justify-center gap-2;
+    @apply bg-slate-800 hover:bg-slate-700 text-slate-50 font-medium rounded-xl transition-all duration-300 border border-slate-700 hover:border-slate-600 active:scale-95 flex items-center justify-center gap-2;
   }
 }
 
@@ -55,4 +86,15 @@ body {
 
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Force text to black on all Jet Stream (indigo/purple) background utility classes to ensure contrast */
+.bg-indigo-300,
+.bg-indigo-400,
+.bg-indigo-500,
+.bg-indigo-600,
+.bg-purple-400,
+.bg-purple-500,
+.bg-purple-600 {
+  color: #000000 !important;
 }
