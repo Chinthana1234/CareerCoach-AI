@@ -1,7 +1,9 @@
 package com.careercoach.backend.service;
 
+import com.careercoach.backend.entity.CvChunk;
 import com.careercoach.backend.entity.CvDocument;
 import com.careercoach.backend.entity.User;
+import com.careercoach.backend.repository.CvChunkRepository;
 import com.careercoach.backend.repository.CvDocumentRepository;
 import com.careercoach.backend.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
@@ -27,6 +29,8 @@ public class CvService {
 
     private final CvDocumentRepository cvDocumentRepository;
     private final UserRepository userRepository;
+    private final CvChunkRepository cvChunkRepository;
+    private final OpenAiEmbeddingService openAiEmbeddingService;
     
     private final Path root = Paths.get("uploads");
 
@@ -94,6 +98,44 @@ public class CvService {
                 .extractedText(extractedText)
                 .build();
 
-        return cvDocumentRepository.save(cvDocument);
+        cvDocument = cvDocumentRepository.save(cvDocument);
+
+        createAndSaveChunks(cvDocument, user);
+
+        return cvDocument;
+    }
+
+    private void createAndSaveChunks(CvDocument cvDocument, User user) {
+        String text = cvDocument.getExtractedText();
+        if (text == null || text.trim().isEmpty()) return;
+
+        // Delete any existing chunks for this user before saving new ones
+        cvChunkRepository.deleteByUserId(user.getId());
+
+        int chunkSize = 2000;
+        int overlap = 300;
+        int length = text.length();
+        int index = 0;
+
+        for (int start = 0; start < length; start += (chunkSize - overlap)) {
+            int end = Math.min(length, start + chunkSize);
+            String chunkText = text.substring(start, end);
+
+            float[] embedding = openAiEmbeddingService.getEmbedding(chunkText);
+
+            CvChunk chunk = CvChunk.builder()
+                    .cvDocument(cvDocument)
+                    .user(user)
+                    .chunkIndex(index++)
+                    .chunkText(chunkText)
+                    .embedding(embedding)
+                    .build();
+
+            cvChunkRepository.save(chunk);
+
+            if (end >= length) {
+                break;
+            }
+        }
     }
 }
